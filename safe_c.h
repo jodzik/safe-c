@@ -15,7 +15,9 @@
 #define SLASH   '\\'
 #endif
 
+#ifndef __FILENAME__
 #define __FILENAME__ (strrchr(__FILE__, SLASH) ? strrchr(__FILE__, SLASH) + 1 : __FILE__)
+#endif
 
 #define LOG_WITH_PREFIX(prefix, fmt) do { g_safe_c_printf(prefix " %s.%i: " fmt "\n", __FILENAME__, __LINE__); } while (0)
 #define LOG_MOCK(fmt) do {} while (0)
@@ -41,8 +43,8 @@
     #define WRN_LOG(fmt) LOG_WITH_PREFIX("[WRN]", fmt)
     #define WRN_LOGf(fmt, ...) LOGf_WITH_PREFIX("[WRN]", fmt, __VA_ARGS__)
 #else
-    #define DBG_LOG(fmt) LOG_MOCK(fmt)
-    #define DBG_LOGf(fmt, ...) LOG_MOCK(fmt)
+    #define WRN_LOG(fmt) LOG_MOCK(fmt)
+    #define WRN_LOGf(fmt, ...) LOG_MOCK(fmt)
 #endif
 
 #if SAFE_C_LOG_EN__ERR
@@ -52,8 +54,6 @@
     #define ERR_LOG(fmt) LOG_MOCK(fmt)
     #define ERR_LOGf(fmt, ...) LOG_MOCK(fmt)
 #endif
-
-#define __FILENAME__ (strrchr(__FILE__, SLASH) ? strrchr(__FILE__, SLASH) + 1 : __FILE__)
 
 #define TRY(func_expr) do {int _result = func_expr; if (0 != _result) {ERR_LOGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
 #define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {DBG_LOGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
@@ -67,7 +67,9 @@
 #define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {ERR_LOGf("Assertion '" #bool_expr "' failed | " fmt ".\n", __VA_ARGS__); return err;} } while (0)
 #define ASSERT_EX(bool_expr, err) do { if (!(bool_expr)) {ERR_LOGf("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
 
+#ifndef UNUSED
 #define UNUSED(var) (void)var
+#endif
 
 enum {
     ER_NOT_PERM = -1,
