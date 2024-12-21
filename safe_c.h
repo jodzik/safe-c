@@ -9,21 +9,29 @@
 // #define SAFE_C_LOG_EN__WRN   1
 // #define SAFE_C_LOG_EN__ERR   1
 
-#ifdef __linux
-#define SLASH '/'
-#else
+enum {
+	SAFE_C__VPRINTF_BUF = 256,
+};
+
+#ifdef __MINGW32__
 #define SLASH   '\\'
+#else
+#define SLASH '/'
 #endif
 
-#ifndef __FILENAME__
-#define __FILENAME__ (strrchr(__FILE__, SLASH) ? strrchr(__FILE__, SLASH) + 1 : __FILE__)
+#ifndef __LINE__
+#error "__LINE__ is undefined, but must be."
 #endif
 
-#define LOG_WITH_PREFIX(prefix, fmt) do { g_safe_c_printf(prefix " %s.%i: " fmt "\n", __FILENAME__, __LINE__); } while (0)
+#ifndef __FILE__
+#error "__FILE__ is undefined, but must be."
+#endif
+
+#define LOG_WITH_PREFIX(prefix, fmt) do { safe_c__printf(prefix " %s.%i: " fmt "\n", safe_c__filename_from_path(__FILE__), __LINE__); } while (0)
 #define LOG_MOCK(fmt) do {} while (0)
-#define LOGf_WITH_PREFIX(prefix, fmt, ...) do { g_safe_c_printf(prefix " %s.%i: " fmt "\n", __FILENAME__, __LINE__, __VA_ARGS__); } while (0)
+#define LOGf_WITH_PREFIX(prefix, fmt, ...) do { safe_c__printf(prefix " %s.%i: " fmt "\n", safe_c__filename_from_path(__FILE__), __LINE__, __VA_ARGS__); } while (0)
 
-#if SAFE_C_LOG_EN__DBG
+#ifdef SAFE_C_LOG_EN__DBG
     #define DBG_LOG(fmt) LOG_WITH_PREFIX("[DBG]", fmt)
     #define DBG_LOGf(fmt, ...) LOGf_WITH_PREFIX("[DBG]", fmt, __VA_ARGS__)
 #else
@@ -31,7 +39,7 @@
     #define DBG_LOGf(fmt, ...) LOG_MOCK(fmt)
 #endif
 
-#if SAFE_C_LOG_EN__INF
+#ifdef SAFE_C_LOG_EN__INF
     #define INF_LOG(fmt) LOG_WITH_PREFIX("[INF]", fmt)
     #define INF_LOGf(fmt, ...) LOGf_WITH_PREFIX("[INF]", fmt, __VA_ARGS__)
 #else
@@ -39,7 +47,7 @@
     #define INF_LOGf(fmt, ...) LOG_MOCK(fmt)
 #endif
 
-#if SAFE_C_LOG_EN__WRN
+#ifdef SAFE_C_LOG_EN__WRN
     #define WRN_LOG(fmt) LOG_WITH_PREFIX("[WRN]", fmt)
     #define WRN_LOGf(fmt, ...) LOGf_WITH_PREFIX("[WRN]", fmt, __VA_ARGS__)
 #else
@@ -47,7 +55,7 @@
     #define WRN_LOGf(fmt, ...) LOG_MOCK(fmt)
 #endif
 
-#if SAFE_C_LOG_EN__ERR
+#ifdef SAFE_C_LOG_EN__ERR
     #define ERR_LOG(fmt) LOG_WITH_PREFIX("[ERR]", fmt)
     #define ERR_LOGf(fmt, ...) LOGf_WITH_PREFIX("[ERR]", fmt, __VA_ARGS__)
 #else
@@ -59,13 +67,13 @@
 #define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {DBG_LOGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
 #define TRY_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i", _result);}} while (0)
 #define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
-#define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i", _result); rc = _result;}} while (0)
+#define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
 #define TRY_EX(func_expr) do {int _result = func_expr; if (0 != _result) {ERR_LOGf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
 #define ASSERT(bool_expr, err) do { if (!(bool_expr)) {ERR_LOG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
 #define ASSERTs(bool_expr, err) do { if (!(bool_expr)) {DBG_LOG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
 #define ASSERTm(bool_expr, err, msg) do { if (!(bool_expr)) {ERR_LOG("Assertion '" #bool_expr "' failed | " msg "."); return err;} } while (0)
 #define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {ERR_LOGf("Assertion '" #bool_expr "' failed | " fmt ".\n", __VA_ARGS__); return err;} } while (0)
-#define ASSERT_EX(bool_expr, err) do { if (!(bool_expr)) {ERR_LOGf("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
+#define ASSERT_EX(bool_expr, err) do { if (!(bool_expr)) {ERR_LOG("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
 
 #ifndef UNUSED
 #define UNUSED(var) (void)var
@@ -128,8 +136,10 @@ enum {
     ER_40 = -40000,
 };
 
-extern void (*g_safe_c_printf)(char const* fmt, ...);
+void safe_c__init(void (*print_func)(char const* str));
 
-void safe_c__init(void (*printf_func)(char const* fmt, ...));
+void safe_c__printf(char const* fmt, ...);
+
+char const* safe_c__filename_from_path(char const* file_path);
 
 #endif // SAFE_C_H_
