@@ -13,7 +13,7 @@ enum {
 	SAFE_C__VPRINTF_BUF = 256,
 };
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(WIN32) || defined(__WIN32)
 #define SLASH   '\\'
 #else
 #define SLASH '/'
