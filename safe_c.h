@@ -65,6 +65,7 @@ enum {
 
 #define TRY(func_expr) do {int _result = func_expr; if (0 != _result) {ERR_LOGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
 #define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {DBG_LOGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
+#define TRYs_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {DBG_LOGf("Fail to call " #func_expr ": %i", _result);}} while (0)
 #define TRY_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i", _result);}} while (0)
 #define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
 #define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
@@ -84,6 +85,7 @@ enum {
     ER_NO_ENT = -2,
     ER_IO = -5,
     ER_BAD_FILE = -9,
+	ER_AGAIN = -11,
     ER_NO_MEM = -12,
     ER_ACCESS = -13,
     ER_BAD_ADDR = -14,
