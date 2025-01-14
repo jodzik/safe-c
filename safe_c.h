@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 // #define SAFE_C_LOG_EN__DBG   1
 // #define SAFE_C_LOG_EN__INF   1
@@ -143,5 +144,7 @@ void safe_c__init(void (*print_func)(char const* str));
 void safe_c__printf(char const* fmt, ...);
 
 char const* safe_c__filename_from_path(char const* file_path);
+
+char const* safe_c__buf_to_str(uint8_t const* buf, uint16_t buf_size);
 
 #endif // SAFE_C_H_
