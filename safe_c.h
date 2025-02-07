@@ -96,6 +96,7 @@ enum {
     ER_NOT_IMPL = -38,
     ER_OVERFLOW = -75,
     ER_NO_DATA = -61,
+    ER_NOT_SUPPORTED = -95,	
     ER_ALREADY = -114,
     ER_1 = -1000,
     ER_2 = -2000,
