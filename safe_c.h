@@ -28,54 +28,63 @@ enum {
 #error "__FILE__ is undefined, but must be."
 #endif
 
-#define LOG_WITH_PREFIX(prefix, fmt) do { safe_c__printf(prefix " %s.%i: " fmt "\n", safe_c__filename_from_path(__FILE__), __LINE__); } while (0)
+#ifdef __ZEPHYR__
+#include <zephyr/logging/log.h>
+#define LOG_DBGf LOG_DBG
+#define LOG_INTf LOG_INF
+#define LOG_WRNf LOG_WRN
+#define LOG_ERRf LOG_ERR
+#else
+#define _SAFE_C__CUSTOM_PRINT
+#define LOG_WITH_PREFIX(prefix, fmt) do { safe_c__printf(prefix " %s:%i: " fmt "\n", safe_c__filename_from_path(__FILE__), __LINE__); } while (0)
 #define LOG_MOCK(fmt) do {} while (0)
-#define LOGf_WITH_PREFIX(prefix, fmt, ...) do { safe_c__printf(prefix " %s.%i: " fmt "\n", safe_c__filename_from_path(__FILE__), __LINE__, __VA_ARGS__); } while (0)
+#define LOGf_WITH_PREFIX(prefix, fmt, ...) do { safe_c__printf(prefix " %s:%i: " fmt "\n", safe_c__filename_from_path(__FILE__), __LINE__, __VA_ARGS__); } while (0)
 
 #ifdef SAFE_C_LOG_EN__DBG
-    #define DBG_LOG(fmt) LOG_WITH_PREFIX("[DBG]", fmt)
-    #define DBG_LOGf(fmt, ...) LOGf_WITH_PREFIX("[DBG]", fmt, __VA_ARGS__)
+    #define LOG_DBG(fmt) LOG_WITH_PREFIX("[DBG]", fmt)
+    #define LOG_DBGf(fmt, ...) LOGf_WITH_PREFIX("[DBG]", fmt, __VA_ARGS__)
 #else
-    #define DBG_LOG(fmt) LOG_MOCK(fmt)
-    #define DBG_LOGf(fmt, ...) LOG_MOCK(fmt)
+    #define LOG_DBG(fmt) LOG_MOCK(fmt)
+    #define LOG_DBGf(fmt, ...) LOG_MOCK(fmt)
 #endif
 
 #ifdef SAFE_C_LOG_EN__INF
-    #define INF_LOG(fmt) LOG_WITH_PREFIX("[INF]", fmt)
-    #define INF_LOGf(fmt, ...) LOGf_WITH_PREFIX("[INF]", fmt, __VA_ARGS__)
+    #define LOG_INF(fmt) LOG_WITH_PREFIX("[INF]", fmt)
+    #define LOG_INFf(fmt, ...) LOGf_WITH_PREFIX("[INF]", fmt, __VA_ARGS__)
 #else
-    #define INF_LOG(fmt) LOG_MOCK(fmt)
-    #define INF_LOGf(fmt, ...) LOG_MOCK(fmt)
+    #define LOG_INF(fmt) LOG_MOCK(fmt)
+    #define LOG_INFf(fmt, ...) LOG_MOCK(fmt)
 #endif
 
 #ifdef SAFE_C_LOG_EN__WRN
-    #define WRN_LOG(fmt) LOG_WITH_PREFIX("[WRN]", fmt)
-    #define WRN_LOGf(fmt, ...) LOGf_WITH_PREFIX("[WRN]", fmt, __VA_ARGS__)
+    #define LOG_WRN(fmt) LOG_WITH_PREFIX("[WRN]", fmt)
+    #define LOG_WRNf(fmt, ...) LOGf_WITH_PREFIX("[WRN]", fmt, __VA_ARGS__)
 #else
-    #define WRN_LOG(fmt) LOG_MOCK(fmt)
-    #define WRN_LOGf(fmt, ...) LOG_MOCK(fmt)
+    #define LOG_WRN(fmt) LOG_MOCK(fmt)
+    #define LOG_WRNf(fmt, ...) LOG_MOCK(fmt)
 #endif
 
 #ifdef SAFE_C_LOG_EN__ERR
-    #define ERR_LOG(fmt) LOG_WITH_PREFIX("[ERR]", fmt)
-    #define ERR_LOGf(fmt, ...) LOGf_WITH_PREFIX("[ERR]", fmt, __VA_ARGS__)
+    #define LOG_ERR(fmt) LOG_WITH_PREFIX("[ERR]", fmt)
+    #define LOG_ERRf(fmt, ...) LOGf_WITH_PREFIX("[ERR]", fmt, __VA_ARGS__)
 #else
-    #define ERR_LOG(fmt) LOG_MOCK(fmt)
-    #define ERR_LOGf(fmt, ...) LOG_MOCK(fmt)
+    #define LOG_ERR(fmt) LOG_MOCK(fmt)
+    #define LOG_ERRf(fmt, ...) LOG_MOCK(fmt)
+#endif
 #endif
 
-#define TRY(func_expr) do {int _result = func_expr; if (0 != _result) {ERR_LOGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
-#define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {DBG_LOGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
-#define TRYs_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {DBG_LOGf("Fail to call " #func_expr ": %i", _result);}} while (0)
-#define TRY_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i", _result);}} while (0)
-#define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
-#define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {WRN_LOGf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
-#define TRY_EX(func_expr) do {int _result = func_expr; if (0 != _result) {ERR_LOGf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
-#define ASSERT(bool_expr, err) do { if (!(bool_expr)) {ERR_LOG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
-#define ASSERTs(bool_expr, err) do { if (!(bool_expr)) {DBG_LOG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
-#define ASSERTm(bool_expr, err, msg) do { if (!(bool_expr)) {ERR_LOG("Assertion '" #bool_expr "' failed | " msg "."); return err;} } while (0)
-#define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {ERR_LOGf("Assertion '" #bool_expr "' failed | " fmt ".\n", __VA_ARGS__); return err;} } while (0)
-#define ASSERT_EX(bool_expr, err) do { if (!(bool_expr)) {ERR_LOG("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
+#define TRY(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
+#define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
+#define TRYs_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result);}} while (0)
+#define TRY_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}} while (0)
+#define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
+#define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
+#define TRY_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+#define ASSERT(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); return err;} } while (0)
+#define ASSERTs(bool_expr, err) do { if (!(bool_expr)) {LOG_DBG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
+#define ASSERTm(bool_expr, err, msg) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed | " msg "."); return err;} } while (0)
+#define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {LOG_ERRf("Assertion '" #bool_expr "' failed | " fmt ".\n", __VA_ARGS__); return err;} } while (0)
+#define ASSERT_EX(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
 
 #ifndef UNUSED
 #define UNUSED(var) (void)var
@@ -96,7 +105,8 @@ enum {
     ER_NOT_IMPL = -38,
     ER_OVERFLOW = -75,
     ER_NO_DATA = -61,
-    ER_NOT_SUPPORTED = -95,	
+    ER_NOT_SUPPORTED = -95,
+    ER_TIMEDOUT = -110,	
     ER_ALREADY = -114,
     ER_1 = -1000,
     ER_2 = -2000,
@@ -140,6 +150,8 @@ enum {
     ER_40 = -40000,
 };
 
+#ifdef _SAFE_C__CUSTOM_PRINT
+
 void safe_c__init(void (*print_func)(char const* str));
 
 void safe_c__printf(char const* fmt, ...);
@@ -147,5 +159,7 @@ void safe_c__printf(char const* fmt, ...);
 char const* safe_c__filename_from_path(char const* file_path);
 
 char const* safe_c__buf_to_str(uint8_t const* buf, uint16_t buf_size);
+
+#endif
 
 #endif // SAFE_C_H_
