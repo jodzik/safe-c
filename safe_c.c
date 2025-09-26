@@ -1,5 +1,7 @@
 #include "safe_c.h"
 
+#ifdef _SAFE_C__CUSTOM_PRINT
+
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -46,3 +48,5 @@ char const* safe_c__buf_to_str(uint8_t const* const buf, uint16_t const buf_size
 
     return buf_str;
 }
+
+#endif
