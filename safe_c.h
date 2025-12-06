@@ -74,7 +74,9 @@ enum {
 #endif
 
 #define TRY(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
+#define TRYr(func_expr, err) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return err;}} while (0)
 #define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
+#define TRYv(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return;}} while (0)
 // Try Pass with debug msg and NOT save result to rc
 #define TRYs_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result);}} while (0)
 // Try without exit, but with warning msg and NOT save result to rc
@@ -83,17 +85,25 @@ enum {
 #define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
 // Try Pass and save result to rc
 #define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
-#define TRY_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+#define TRY_EX(func_expr)       do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+#define TRYr_EX(func_expr, err) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+#define TRYv_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); goto finally;}} while (0)
 #define ASSERT(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); return err;} } while (0)
+#define ASSERTv(bool_expr) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); return;} } while (0)
 #define ASSERTs(bool_expr, err) do { if (!(bool_expr)) {LOG_DBG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
 #define ASSERTm(bool_expr, err, msg) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed | " msg "."); return err;} } while (0)
 #define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {LOG_ERRf("Assertion '" #bool_expr "' failed | " fmt ".\n", __VA_ARGS__); return err;} } while (0)
 #define ASSERT_EX(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
+#define ASSERTs_EX(bool_expr, err) do { if (!(bool_expr)) {LOG_DBG("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
+#define ASSERTv_EX(bool_expr) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); goto finally;} } while (0)
 
 #ifndef UNUSED
 #define UNUSED(var) (void)var
 #endif
 
+/// @brief Common error codes with minus.
+/// https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno-base.h
+/// https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno.h
 enum {
     ER_NOT_PERM = -1,
     ER_NO_ENT = -2,
@@ -104,8 +114,10 @@ enum {
     ER_ACCESS = -13,
     ER_BAD_ADDR = -14,
     ER_BUSY = -16,
+    ER_NO_DEV = -19,
     ER_INVAL = -22,
-    ER_ENT_TOO_BIG = -27,		
+    ER_ENT_TOO_BIG = -27,
+    ER_OUT_OF_RANGE = -34,		
     ER_NOT_IMPL = -38,
     ER_OVERFLOW = -75,
     ER_NO_DATA = -61,
@@ -164,6 +176,10 @@ char const* safe_c__filename_from_path(char const* file_path);
 
 char const* safe_c__buf_to_str(uint8_t const* buf, uint16_t buf_size);
 
+#endif
+
+#if !__BSD_VISIBLE
+size_t strlcpy(char* dst, char const* src, size_t dst_size);
 #endif
 
 #endif // SAFE_C_H_
