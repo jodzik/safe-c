@@ -75,6 +75,8 @@ enum {
 
 #define TRY(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
 #define TRYr(func_expr, err) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return err;}} while (0)
+// Allow positive return codes
+#define TRYp(func_expr) do {int _result = func_expr; if (_result < 0) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
 #define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
 #define TRYv(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return;}} while (0)
 // Try Pass with debug msg and NOT save result to rc
