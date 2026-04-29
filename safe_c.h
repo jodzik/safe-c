@@ -34,6 +34,7 @@ enum {
 #define LOG_INTf LOG_INF
 #define LOG_WRNf LOG_WRN
 #define LOG_ERRf LOG_ERR
+#define SAFE_C__PANIC() k_panic()
 #else
 #define _SAFE_C__CUSTOM_PRINT
 #define LOG_WITH_PREFIX(prefix, fmt) do { safe_c__printf(prefix " %s:%i: " fmt "\n", safe_c__filename_from_path(__FILE__), __LINE__); } while (0)
@@ -89,7 +90,9 @@ enum {
 #define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
 #define TRY_EX(func_expr)       do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
 #define TRYr_EX(func_expr, err) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+#define TRYp_EX(func_expr)       do {int _result = func_expr; if (_result < 0) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
 #define TRYv_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); goto finally;}} while (0)
+#define TRY_PANIC(func_expr)  do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); SAFE_C__PANIC();}} while (0)
 #define ASSERT(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); return err;} } while (0)
 #define ASSERTv(bool_expr) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); return;} } while (0)
 #define ASSERTs(bool_expr, err) do { if (!(bool_expr)) {LOG_DBG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
