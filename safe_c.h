@@ -31,7 +31,7 @@ enum {
 #ifdef __ZEPHYR__
 #include <zephyr/logging/log.h>
 #define LOG_DBGf LOG_DBG
-#define LOG_INTf LOG_INF
+#define LOG_INFf LOG_INF
 #define LOG_WRNf LOG_WRN
 #define LOG_ERRf LOG_ERR
 #define SAFE_C__PANIC() k_panic()
@@ -74,33 +74,47 @@ enum {
 #endif
 #endif
 
-#define TRY(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
-#define TRYr(func_expr, err) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return err;}} while (0)
-// Allow positive return codes
-#define TRYp(func_expr) do {int _result = func_expr; if (_result < 0) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
-#define TRYs(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result); return _result;}} while (0)
-#define TRYv(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); return;}} while (0)
-// Try Pass with debug msg and NOT save result to rc
-#define TRYs_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result);}} while (0)
-// Try without exit, but with warning msg and NOT save result to rc
-#define TRY_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}} while (0)
-// Try Pass with format msg and NOT save result to rc
-#define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
-// Try Pass and save result to rc
-#define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
-#define TRY_EX(func_expr)       do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
-#define TRYr_EX(func_expr, err) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
-#define TRYp_EX(func_expr)       do {int _result = func_expr; if (_result < 0) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
-#define TRYv_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); goto finally;}} while (0)
+// Call func, if error - print err msg, save result in rc and goto finally.
+#define TRY(func_expr)       do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+
+// TRY with error replace.
+#define TRYr(func_expr, err) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+
+// TRY with allow positive return codes.
+#define TRYp(func_expr)       do {int _result = func_expr; if (_result < 0) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); rc = _result; goto finally;}} while (0)
+
+// TRY without save result in rc.
+#define TRYv(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); goto finally;}} while (0)
+
+// TRY with do panic instead of goto finally.
 #define TRY_PANIC(func_expr)  do {int _result = func_expr; if (0 != _result) {LOG_ERRf("Fail to call " #func_expr ": %i", _result); SAFE_C__PANIC();}} while (0)
-#define ASSERT(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); return err;} } while (0)
-#define ASSERTv(bool_expr) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); return;} } while (0)
-#define ASSERTs(bool_expr, err) do { if (!(bool_expr)) {LOG_DBG("Assertion '" #bool_expr "' failed."); return err;} } while (0)
-#define ASSERTm(bool_expr, err, msg) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed | " msg "."); return err;} } while (0)
-#define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {LOG_ERRf("Assertion '" #bool_expr "' failed | " fmt ".\n", __VA_ARGS__); return err;} } while (0)
-#define ASSERT_EX(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
-#define ASSERTs_EX(bool_expr, err) do { if (!(bool_expr)) {LOG_DBG("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
-#define ASSERTv_EX(bool_expr) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); goto finally;} } while (0)
+
+// TRY without goto finally if error, but with warning msg. NOT save result to rc.
+#define TRY_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}} while (0)
+
+// TRY_PASS with debug level msg. NOT save result to rc.
+#define TRYs_PASS(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_DBGf("Fail to call " #func_expr ": %i", _result);}} while (0)
+
+// TRY_PASS with format msg. NOT save result to rc.
+#define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
+
+// TRY_PASS with save result to rc.
+#define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
+
+// Check input bool_expr, do print err msg, save err to rc and goto finally if error.
+#define ASSERT(bool_expr, err) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
+
+// ASSERT with debug level msg.
+#define ASSERTs(bool_expr, err) do { if (!(bool_expr)) {LOG_DBG("Assertion '" #bool_expr "' failed."); rc = err; goto finally;} } while (0)
+
+// ASSERT with msg.
+#define ASSERTm(bool_expr, err, msg) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed | " msg "."); rc = err; goto finally;} } while (0)
+
+// ASSERT with format msg.
+#define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed | " fmt ".", __VA_ARGS__); rc = err; goto finally;} } while (0)
+
+// ASSERT without save err to rc.
+#define ASSERTv(bool_expr) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); goto finally;} } while (0)
 
 #ifndef UNUSED
 #define UNUSED(var) (void)var
@@ -109,7 +123,7 @@ enum {
 /// @brief Common error codes with minus.
 /// https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno-base.h
 /// https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno.h
-enum {
+enum ErrorCodes {
     ER_NOT_PERM = -1,
     ER_NO_ENT = -2,
     ER_IO = -5,
