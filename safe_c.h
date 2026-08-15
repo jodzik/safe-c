@@ -98,6 +98,9 @@ enum {
 // TRY_PASS with format msg. NOT save result to rc.
 #define TRYf_PASS(func_expr, fmt, ...) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i, " fmt "", _result, __VA_ARGS__);}} while (0)
 
+// TRY without goto finally if error, but with warning msg. Error checking as in TRYp. NOT save result to rc.
+#define TRYp_PASS(func_expr) do {int _result = func_expr; if (_result < 0) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}} while (0)
+
 // TRY_PASS with save result to rc.
 #define TRY_PASS_EX(func_expr) do {int _result = func_expr; if (0 != _result) {LOG_WRNf("Fail to call " #func_expr ": %i", _result);}rc = _result;} while (0)
 
@@ -140,6 +143,7 @@ enum ErrorCodes {
     ER_NOT_IMPL = -38,
     ER_OVERFLOW = -75,
     ER_NO_DATA = -61,
+    ER_INTEGRITY = -74,
     ER_NOT_SUPPORTED = -95,
     ER_TIMEDOUT = -110,	
     ER_ALREADY = -114,
