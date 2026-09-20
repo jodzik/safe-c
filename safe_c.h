@@ -114,7 +114,7 @@ enum {
 #define ASSERTm(bool_expr, err, msg) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed | " msg "."); rc = err; goto finally;} } while (0)
 
 // ASSERT with format msg.
-#define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed | " fmt ".", __VA_ARGS__); rc = err; goto finally;} } while (0)
+#define ASSERTf(bool_expr, err, fmt, ...) do { if (!(bool_expr)) {LOG_ERRf("Assertion '" #bool_expr "' failed | " fmt ".", __VA_ARGS__); rc = err; goto finally;} } while (0)
 
 // ASSERT without save err to rc.
 #define ASSERTv(bool_expr) do { if (!(bool_expr)) {LOG_ERR("Assertion '" #bool_expr "' failed."); goto finally;} } while (0)

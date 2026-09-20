@@ -42,7 +42,7 @@ char const* safe_c__buf_to_str(uint8_t const* const buf, uint16_t const buf_size
         }
         ptr += rc;
     }
-    if (ptr < sizeof(buf_str) - 1) {
+    if (ptr < (int)(sizeof(buf_str) - 1)) {
         buf_str[ptr] = ']';
     }
 
