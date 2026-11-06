@@ -148,6 +148,7 @@ enum ErrorCodes {
     ER_NOT_SUPPORTED = -95,
     ER_TIMEDOUT = -110,	
     ER_ALREADY = -114,
+    ER_ABORTED = -115,
 
     ER_PROTO_INTERNAL = -500,
 
